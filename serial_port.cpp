@@ -669,7 +669,7 @@ void SerialPort::_bind_methods() {
 	ClassDB::bind_method(D_METHOD("get_ri"), &SerialPort::get_ri);
 	ClassDB::bind_method(D_METHOD("get_cd"), &SerialPort::get_cd);
 
-	ADD_PROPERTY(PropertyInfo(Variant::INT, "port"), "set_port", "get_port");
+	ADD_PROPERTY(PropertyInfo(Variant::STRING, "port"), "set_port", "get_port");
 	ADD_PROPERTY(PropertyInfo(Variant::INT, "baudrate"), "set_baudrate", "get_baudrate");
 	ADD_PROPERTY(PropertyInfo(Variant::INT, "bytesize", PROPERTY_HINT_ENUM, "5, 6, 7, 8"), "set_bytesize", "get_bytesize");
 	ADD_PROPERTY(PropertyInfo(Variant::INT, "parity", PROPERTY_HINT_ENUM, "None, Odd, Even, Mark, Space"), "set_parity", "get_parity");

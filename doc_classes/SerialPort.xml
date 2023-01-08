@@ -1,0 +1,160 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<class name="SerialPort" inherits="Object" version="4.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="../../../doc/class.xsd">
+	<brief_description>
+		Support serial port communication.
+	</brief_description>
+	<description>
+		The [SerialPort] enables the serial port communication with your serial devices.
+		[b]Note:[/b] When using on linux, note you have the promission to operate the serial port.
+	</description>
+	<tutorials>
+		<link title="SerialPort example">https://github.com/matrixant/serial_port_example</link>
+	</tutorials>
+	<members>
+		<member name="port" type="String" setter="set_port" getter="get_port" default="&quot;&quot;">
+			Set serial port name.
+		</member>
+		<member name="baudrate" type="int" setter="set_baudrate" getter="get_baudrate" default="9600">
+			Set serial port communication baudrate.
+		</member>
+		<member name="bytesize" type="int" setter="set_bytesize" getter="get_bytesize" enum="SerialPort.ByteSize" default="8">
+			Set serial port communication byte size.
+		</member>
+		<member name="parity" type="int" setter="set_parity" getter="get_parity" enum="SerialPort.Parity" default="0">
+			Set serial port communication parity check type.
+		</member>
+		<member name="stopbits" type="int" setter="set_stopbits" getter="get_stopbits" enum="SerialPort.StopBits" default="1">
+			Set serial port communication stop bits.
+		</member>
+		<member name="flowcontrol" type="int" setter="set_flowcontrol" getter="get_flowcontrol" enum="SerialPort.FlowControl" default="0">
+			Set serial port communication flow control.
+		</member>
+	</members>
+	<constants>
+		<constant name="BYTESIZE_5" value="5" enum="ByteSize">
+			Communication byte size is 5 bit.
+		</constant>
+		<constant name="BYTESIZE_6" value="6" enum="ByteSize">
+			Communication byte size is 6 bit.
+		</constant>
+		<constant name="BYTESIZE_7" value="7" enum="ByteSize">
+			Communication byte size is 7 bit.
+		</constant>
+		<constant name="BYTESIZE_8" value="8" enum="ByteSize">
+			Communication byte size is 8 bit.
+		</constant>
+		<constant name="PARITY_NONE" value="0" enum="Parity">
+			No parity check bit.
+		</constant>
+		<constant name="PARITY_ODD" value="1" enum="Parity">
+			Odd check.
+		</constant>
+		<constant name="PARITY_EVEN" value="2" enum="Parity">
+			Even check.
+		</constant>
+		<constant name="PARITY_MARK" value="3" enum="Parity">
+			Mark check.
+		</constant>
+		<constant name="PARITY_SPACE" value="4" enum="Parity">
+			Space check.
+		</constant>
+	</constants>
+	<methods>
+		<method name="encode" qualifiers="static">
+			<return type="Array" />
+			<param index="0" name="data" type="Variant" />
+			<description>
+				Returns [enum Error] code and encoded byte arra. This function returns two values, an [enum Error] code and a byte array.
+				If you want encode a godot value to SerialPort byte array:
+				[codeblock]
+				var data = [1, 2.3, false, {"test" : true}]
+				var result = SerialPort.encode(data);
+				var byte_array
+				if result[0] == OK:
+				    byte_array = result[1]
+				else:
+				    print("Error code: %d" % result[0])
+				# Then you can send the message data by tcp connection or other channel.
+				[/codeblock]
+			</description>
+		</method>
+		<method name="decode" qualifiers="static">
+			<return type="Array" />
+			<param index="0" name="msg_buf" type="PackedByteArray" />
+			<description>
+				Returns [enum Error] code and decoded data. This function returns two values, an [enum Error] code and a variant data.
+				Or you want decode a SerialPort data buffer:
+				[codeblock]
+				var msg_buf = [148, 1, 203, 64, 2, 102, 102, 102, 102, 102, 102, 194, 129, 164, 116, 101, 115, 116, 195]
+				var result = SerialPort.decode(msg_buf);
+				var data
+				if result[0] == OK:
+				    data = result[1]
+				else:
+				    print("Error code: %d" % result[0])
+				# Then you get the data: [1, 2.3, false, {"test" : true}]
+				[/codeblock]
+			</description>
+		</method>
+		<method name="start_stream">
+			<param index="0" name="msgs_max" type="int" default="MSG_MAX_SIZE" />
+			<description>
+				Start a process to handle [SerialPort] data stream. And when call [method update_stream], the object will update new data and try parse the stream.
+				Method [method start_stream] and [method update_stream] can help to process incremental SerialPort bytes array.
+			</description>
+		</method>
+		<method name="update_stream">
+			<return type="Error" />
+			<param index="0" name="data" type="PackedByteArray" />
+			<param index="1" name="from" type="int" default="0" />
+			<param index="2" name="to" type="int" default="INT_MAX" />
+			<description>
+				Update data to SerialPort's data buffer and try decode these data bytes into a value defined in Godot.
+				Returns [code]OK[/code] when decoding successfully, return [code]ERR_SKIP[/code] when the data too few to decode.
+				Returns other errors when there is a really error. Use [method get_error_message] for identifying the source of the failure.
+				[b]Example[/b]
+				[codeblock]
+				# buffer is the message data bytes received from network or other channels.
+				var msg_pack = SerialPort.new()
+				func _ready():
+				    msg_pack.start_stream()
+				
+				func _process(delta):
+				    if buffer_avaiable:
+				        if msg_pack.update_stream(buffer) == OK:
+				            print("Message received: %s" % str(msg_pack.get_data()))
+				        else:
+				            print("Message parser error: %s" % msg_pack.get_error_message())
+				[/codeblock]
+			</description>
+		</method>
+		<method name="register_extension_type">
+			<param index="0" name="type_id" type="int" />
+			<param index="1" name="decoder" type="Callable" />
+			<description>
+				Register decoder for the extension type data process. The decoder expect [code]type_id[/code]([int]) and [code]data[/code]([PackedByteArray]) for parameters, then return a [Variant] for the result.
+				[b]Note:[/b] Decoder registered only works for stream parse.
+			</description>
+		</method>
+		<method name="get_data">
+			<return type="Variant" />
+			<description>
+				Get the latest data decoded from the stream.
+			</description>
+		</method>
+		<method name="get_current_stream_length">
+			<return type="int" />
+			<description>
+				Get the byte num in the stream.
+			</description>
+		</method>
+		<method name="get_error_message">
+			<return type="String" />
+			<description>
+				Get the latest error message.
+			</description>
+		</method>
+	</methods>
+	<constants>
+	</constants>
+</class>
