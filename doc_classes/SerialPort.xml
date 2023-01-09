@@ -219,6 +219,7 @@
 			<param index="2" name="utf8_encoding" type="bool" default="false" />
 			<description>
 				Read a string line end with the [code]eol[/code] from the serial port. When expect an utf-8 string, let the [code]utf8_encoding[/code] be [code]true[/code]. The max_len is the maximum length of the string.
+				[b]Note:[/b] The default [code]eol[/code] is [code]\n[/code].
 			</description>
 		</method>
 		<method name="read_lines">
@@ -228,6 +229,7 @@
 			<param index="2" name="utf8_encoding" type="bool" default="false" />
 			<description>
 				Read multi lines of string which end with the [code]eol[/code] from the serial port. When expect an utf-8 string, let the [code]utf8_encoding[/code] be [code]true[/code]. The max_len is the maximum length of the total lines of string.
+				[b]Note:[/b] The default [code]eol[/code] is [code]\n[/code].
 			</description>
 		</method>
 		<method name="set_port">
