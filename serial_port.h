@@ -31,31 +31,39 @@
 #ifndef SERIAL_PORT_H
 #define SERIAL_PORT_H
 
-#include "core/object/ref_counted.h"
-#include "core/os/thread.h"
+#ifdef GDEXTENSION
+#include <godot_cpp/templates/vector.hpp>
+#include <godot_cpp/variant/builtin_types.hpp>
+
+using namespace godot;
+#else
 #include "core/string/ustring.h"
-#include "core/templates/rb_map.h"
 #include "core/templates/vector.h"
 #include "core/variant/array.h"
 #include "core/variant/dictionary.h"
+#endif
 
 #include "serial/serial.h"
+
+#include <atomic>
+#include <thread>
 
 using namespace serial;
 
 class SerialPort : public Object {
 	GDCLASS(SerialPort, Object);
 
+	static void _thread_func(void *p_user_data);
+
 	Serial *serial;
-	Thread thread;
-	bool fine_working = false;
 	int monitoring_interval = 10000;
-	bool monitoring_should_exit = false;
+	std::atomic<bool> fine_working = false;
+	std::atomic<bool> monitoring_should_exit = true;
+	std::thread thread;
+
 	String error_message = "";
 
 	void _data_received(const PackedByteArray &buf);
-
-	static void _thread_func(void *p_user_data);
 
 public:
 	enum ByteSize {
